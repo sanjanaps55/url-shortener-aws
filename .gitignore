@@ -1,0 +1,7 @@
+.env
+__pycache__/
+*.pyc
+local.db
+local_qr/
+venv/
+*.pem

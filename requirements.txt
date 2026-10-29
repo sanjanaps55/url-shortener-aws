@@ -1,0 +1,5 @@
+flask>=3.0
+qrcode[pil]>=7.4
+pymysql>=1.1
+boto3>=1.34
+gunicorn>=22.0
