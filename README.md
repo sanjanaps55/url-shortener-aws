@@ -19,16 +19,17 @@ flowchart LR
 
     subgraph VPC["VPC 10.0.0.0/16 (ap-southeast-2)"]
         subgraph PUB["Public subnet"]
-            N[nginx] --> G[gunicorn + Flask app]
-            EC2[(EC2 t3.micro)]
+            subgraph EC2["EC2 instance (t3.micro)"]
+                N[nginx] --> G[gunicorn + Flask app]
+            end
         end
-        subgraph PRIV["Private subnets"]
+        subgraph PRIV["Private subnet"]
             DB[(RDS MySQL)]
         end
-        G -->|3306, only from web-sg| DB
+        G -->|"3306, only from web-sg"| DB
     end
 
-    G -->|IAM role, no access keys| S3[(S3 bucket: QR images)]
+    G -->|"IAM role, no access keys"| S3[(S3 bucket: QR images)]
 ```
 
 | Piece | Role |
@@ -103,15 +104,18 @@ Region used: `ap-southeast-2` (Sydney).
 4. **IAM:** create a policy allowing `s3:PutObject` and `s3:GetObject` on `arn:aws:s3:::<bucket>/qr/*`, and attach it to an EC2 role
 5. **RDS:** create a MySQL `db.t3.micro` in a DB subnet group of the private subnets, public access off, security group `db-sg`, initial database name `shortener`
 6. **EC2:** launch Amazon Linux 2023 in a public subnet with `web-sg` and the IAM role
-7. **Server setup:**
-   ```bash
-   sudo dnf install -y git nginx python3-pip
-   git clone <this repo> && cd <repo>
-   python3 -m venv venv && source venv/bin/activate
-   pip install -r requirements.txt
-   ```
+7. **Server setup:** install git, nginx and pip, clone this repo, create a virtual environment and install the requirements (commands below)
 8. **Settings:** create `.env` from `.env.example` with the database host, password, bucket name and region
 9. **Run:** create a systemd service for gunicorn and an nginx reverse proxy to `127.0.0.1:8000`
+
+Server setup commands:
+
+```bash
+sudo dnf install -y git nginx python3-pip
+git clone <this repo> && cd <repo>
+python3 -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+```
 
 Configuration variables:
 
